@@ -1,140 +1,652 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Трекер времени</title>
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0b1220">
-
   <style>
-    :root { color-scheme: dark; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background: #0b1220;
-      color: #ffffff;
+    :root{
+      --bg:#0b1220; --card:#0f1a2e; --card2:#0c1527;
+      --text:#e8eefc; --muted:#9fb0d0; --line:#223255;
+      --accent:#4da3ff; --danger:#ff5b5b;
     }
-    .container {
-      max-width: 640px;
-      margin: auto;
-      padding: 16px;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:linear-gradient(180deg,#070c16,var(--bg));
+      color:var(--text);
+      padding:16px;
     }
-    h1 {
-      font-size: 20px;
-      margin-bottom: 12px;
+    .wrap{max-width:760px;margin:0 auto}
+    h1{margin:0 0 12px;font-size:22px}
+    .card{
+      background:linear-gradient(180deg,var(--card),var(--card2));
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+      margin-bottom:12px;
     }
-    .card {
-      background: #111a2e;
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 12px;
-      border: 1px solid rgba(255,255,255,0.1);
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    input, button{
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#0a1324;
+      color:var(--text);
+      padding:12px 12px;
+      font-size:16px;
+      outline:none;
     }
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 8px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.15);
-      background: #0b1220;
-      color: #fff;
-      font-size: 16px;
-      box-sizing: border-box;
+    input::placeholder{color:#6f82aa}
+    button{
+      background:rgba(77,163,255,.15);
+      border:1px solid rgba(77,163,255,.35);
+      cursor:pointer;
+      user-select:none;
     }
-    button {
-      background: #1f6feb;
-      border-color: #1f6feb;
-      cursor: pointer;
+    button:active{transform:scale(.99)}
+    button.secondary{
+      background:rgba(255,255,255,.06);
+      border-color:rgba(255,255,255,.10);
     }
-    .row {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 8px;
-      gap: 10px;
+    button.danger{
+      background:rgba(255,91,91,.12);
+      border-color:rgba(255,91,91,.35);
     }
-    .small {
-      font-size: 14px;
-      opacity: 0.85;
+    .stats{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
     }
+    .stat{
+      padding:12px;
+      border-radius:14px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .stat .k{color:var(--muted); font-size:13px}
+    .stat .v{font-size:20px; margin-top:4px}
+    .bar{
+      height:10px;
+      border-radius:999px;
+      overflow:hidden;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+      margin-top:12px;
+    }
+    .fill{height:100%; width:0%; background:var(--accent)}
+    .hint{color:var(--muted); font-size:13px; margin-top:8px; line-height:1.35}
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    @media (max-width:620px){ .grid{grid-template-columns:1fr} .stats{grid-template-columns:1fr 1fr} }
+    .tile{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.07);
+      background:rgba(255,255,255,.03);
+    }
+    .tile .left{display:flex; gap:10px; align-items:center; min-width:0}
+    .icon{
+      width:44px;height:44px;border-radius:14px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+      font-size:22px;
+      flex:0 0 auto;
+    }
+    .name{font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .sub{color:var(--muted); font-size:13px; margin-top:2px}
+    .tile .actions{display:flex; gap:8px; flex:0 0 auto}
+    .mini{padding:10px 10px; font-size:14px; border-radius:12px}
+    .list{margin-top:10px}
+    .item{
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.07);
+      background:rgba(255,255,255,.03);
+      margin-top:8px;
+    }
+    .item .l{min-width:0}
+    .item .title{font-weight:650}
+    .item .meta{color:var(--muted); font-size:13px; margin-top:2px}
+    dialog{
+      border:none;
+      padding:0;
+      border-radius:18px;
+      background:transparent;
+      width:min(760px, 96vw);
+      color:var(--text);
+    }
+    dialog::backdrop{background:rgba(0,0,0,.55)}
+    .modal{
+      background:linear-gradient(180deg,var(--card),var(--card2));
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      box-shadow:0 20px 60px rgba(0,0,0,.45);
+    }
+    .modal h2{margin:0 0 10px;font-size:18px}
+    canvas{width:100%; height:240px; background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.06); border-radius:14px}
+    .topcats{margin-top:10px}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      margin:6px 6px 0 0;
+      font-size:13px;
+      color:var(--text);
+    }
+    .pill .m{color:var(--muted)}
   </style>
 </head>
-
 <body>
-  <div class="container">
+  <div class="wrap">
     <h1>Трекер дня (24 часа)</h1>
 
     <div class="card">
-      <input id="activity" placeholder="Занятие (сон, работа, зал)">
-      <input id="minutes" type="number" placeholder="Минуты (например 90)">
-      <button onclick="add()">Добавить</button>
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div style="font-weight:700">Сегодня: <span id="todayLabel"></span></div>
+          <div class="hint">Добавляй категории (эмодзи + название), потом нажимай «+ минуты». Всё сохраняется.</div>
+        </div>
+        <div class="row">
+          <button class="secondary" id="weekBtn">График за неделю</button>
+          <button class="danger" id="newDayBtn">Новый день</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="k">Потрачено</div>
+          <div class="v" id="spent">0 мин</div>
+        </div>
+        <div class="stat">
+          <div class="k">Осталось</div>
+          <div class="v" id="left">1440 мин</div>
+        </div>
+        <div class="stat">
+          <div class="k">Записей</div>
+          <div class="v" id="count">0</div>
+        </div>
+      </div>
+
+      <div class="bar"><div class="fill" id="fill"></div></div>
+      <div class="hint">Если потратишь больше 1440 минут, я всё равно посчитаю — это будет видно в статистике.</div>
     </div>
 
     <div class="card">
+      <div style="font-weight:700; margin-bottom:8px">1) Создать «иконку» (категорию)</div>
       <div class="row">
-        <span>Потрачено</span>
-        <strong id="spent">0 мин</strong>
+        <input id="catEmoji" placeholder="Эмодзи (например 🎤)" style="width:180px" />
+        <input id="catName" placeholder="Название (работа, спорт, вокал)" style="flex:1; min-width:220px" />
+        <button id="addCatBtn">Добавить</button>
       </div>
-      <div class="row">
-        <span>Осталось</span>
-        <strong id="left">1440 мин</strong>
-      </div>
+      <div class="hint">Совет: эмодзи лучше 1 символ. Примеры: 💼 Работа, 🏋️ Спорт, 🎤 Вокал, 👨‍👩‍👧 Семья.</div>
     </div>
 
-    <div class="card" id="list">
-      <div class="small">Пока записей нет</div>
+    <div class="card">
+      <div style="font-weight:700; margin-bottom:8px">2) Категории (нажми «+ минуты»)</div>
+      <div id="cats" class="grid"></div>
+      <div class="hint">У каждой категории показывается сумма минут за сегодня.</div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:700">Записи за сегодня</div>
+      <div id="entries" class="list"></div>
+      <div class="hint">Можно удалять отдельные записи.</div>
     </div>
   </div>
 
+  <dialog id="weekDialog">
+    <div class="modal">
+      <div class="row" style="justify-content:space-between">
+        <h2>3) График за неделю</h2>
+        <button class="secondary" id="closeWeek">Закрыть</button>
+      </div>
+
+      <canvas id="weekCanvas" width="900" height="360"></canvas>
+
+      <div class="topcats">
+        <div style="font-weight:700; margin-top:10px">Топ категорий за 7 дней</div>
+        <div id="topCats"></div>
+      </div>
+
+      <div class="hint" style="margin-top:10px">
+        График показывает общее количество минут по каждому дню (последние 7 дней, включая сегодня).
+      </div>
+    </div>
+  </dialog>
+
 <script>
-  // регистрация Service Worker
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js");
+/** ====== Storage Schema ======
+state = {
+  categories: [{id, emoji, name}],
+  days: {
+     "YYYY-MM-DD": {
+        entries: [{id, catId, minutes, ts}],
+     }
+  }
+}
+*/
+const STORE_KEY = "tt_state_v2";
+const DAY_MINUTES = 1440;
+
+const $ = (id) => document.getElementById(id);
+
+function nowTs(){ return Date.now(); }
+
+function pad(n){ return String(n).padStart(2,"0"); }
+function dayKey(d = new Date()){
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function fmtDateRu(key){
+  const [y,m,dd] = key.split("-").map(Number);
+  const d = new Date(y, m-1, dd);
+  return d.toLocaleDateString("ru-RU", { weekday:"short", day:"2-digit", month:"2-digit" });
+}
+function clampInt(n){
+  const x = Number(n);
+  if (!Number.isFinite(x)) return 0;
+  return Math.max(0, Math.round(x));
+}
+function uid(){
+  return Math.random().toString(16).slice(2) + "-" + Math.random().toString(16).slice(2);
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return { categories: seedCats(), days: {} };
+    const s = JSON.parse(raw);
+    if(!s.categories) s.categories = seedCats();
+    if(!s.days) s.days = {};
+    return s;
+  }catch(e){
+    return { categories: seedCats(), days: {} };
+  }
+}
+function saveState(){
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+}
+
+function seedCats(){
+  return [
+    {id: uid(), emoji:"💼", name:"Работа"},
+    {id: uid(), emoji:"🏋️", name:"Спорт"},
+    {id: uid(), emoji:"🎤", name:"Вокал"},
+    {id: uid(), emoji:"😴", name:"Сон"},
+  ];
+}
+
+let state = loadState();
+let today = dayKey();
+
+function ensureToday(){
+  if(!state.days[today]) state.days[today] = { entries: [] };
+}
+
+function getTodayEntries(){
+  ensureToday();
+  return state.days[today].entries;
+}
+
+function sumToday(){
+  return getTodayEntries().reduce((a,e)=>a+e.minutes,0);
+}
+function sumTodayByCat(catId){
+  return getTodayEntries().filter(e=>e.catId===catId).reduce((a,e)=>a+e.minutes,0);
+}
+
+function renderHeader(){
+  $("todayLabel").textContent = new Date().toLocaleDateString("ru-RU", { day:"2-digit", month:"long", year:"numeric" });
+}
+
+function renderStats(){
+  const spent = sumToday();
+  const left = DAY_MINUTES - spent;
+
+  $("spent").textContent = `${spent} мин`;
+  $("left").textContent = `${left} мин`;
+  $("count").textContent = String(getTodayEntries().length);
+
+  const pct = Math.min(200, Math.max(0, (spent / DAY_MINUTES) * 100)); // can exceed 100, cap at 200 for UI
+  $("fill").style.width = `${Math.min(100, pct)}%`;
+  $("fill").style.background = pct <= 100 ? "var(--accent)" : "var(--danger)";
+}
+
+function renderCats(){
+  const box = $("cats");
+  box.innerHTML = "";
+
+  for(const c of state.categories){
+    const total = sumTodayByCat(c.id);
+
+    const tile = document.createElement("div");
+    tile.className = "tile";
+
+    const left = document.createElement("div");
+    left.className = "left";
+
+    const icon = document.createElement("div");
+    icon.className = "icon";
+    icon.textContent = c.emoji || "🔷";
+
+    const text = document.createElement("div");
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = c.name || "Без названия";
+    const sub = document.createElement("div");
+    sub.className = "sub";
+    sub.textContent = `Сегодня: ${total} мин`;
+
+    text.appendChild(name);
+    text.appendChild(sub);
+
+    left.appendChild(icon);
+    left.appendChild(text);
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const addBtn = document.createElement("button");
+    addBtn.className = "mini";
+    addBtn.textContent = "+ минуты";
+    addBtn.onclick = () => addMinutesFlow(c.id);
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "mini danger";
+    delBtn.textContent = "Удалить";
+    delBtn.onclick = () => deleteCategory(c.id);
+
+    actions.appendChild(addBtn);
+    actions.appendChild(delBtn);
+
+    tile.appendChild(left);
+    tile.appendChild(actions);
+
+    box.appendChild(tile);
+  }
+}
+
+function renderEntries(){
+  const box = $("entries");
+  const entries = getTodayEntries().slice().sort((a,b)=>b.ts-a.ts);
+  box.innerHTML = "";
+
+  if(entries.length === 0){
+    const empty = document.createElement("div");
+    empty.className = "hint";
+    empty.textContent = "Пока записей нет.";
+    box.appendChild(empty);
+    return;
   }
 
-  let total = 0;
+  for(const e of entries){
+    const cat = state.categories.find(c=>c.id===e.catId);
+    const item = document.createElement("div");
+    item.className = "item";
 
-  function add() {
-    const activityInput = document.getElementById("activity");
-    const minutesInput = document.getElementById("minutes");
-    const list = document.getElementById("list");
+    const l = document.createElement("div");
+    l.className = "l";
 
-    const activity = activityInput.value.trim();
-    const minutes = Number(minutesInput.value);
+    const title = document.createElement("div");
+    title.className = "title";
+    title.textContent = `${cat ? (cat.emoji+" "+cat.name) : "Категория"} — ${e.minutes} мин`;
 
-    if (!activity || !Number.isFinite(minutes) || minutes <= 0) return;
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    const t = new Date(e.ts).toLocaleTimeString("ru-RU", {hour:"2-digit", minute:"2-digit"});
+    meta.textContent = `Время записи: ${t}`;
 
-    total += minutes;
+    l.appendChild(title);
+    l.appendChild(meta);
 
-    document.getElementById("spent").innerText = total + " мин";
-    document.getElementById("left").innerText = (1440 - total) + " мин";
+    const del = document.createElement("button");
+    del.className = "mini danger";
+    del.textContent = "Удалить";
+    del.onclick = () => deleteEntry(e.id);
 
-    if (list.querySelector(".small")) {
-      list.innerHTML = "";
+    item.appendChild(l);
+    item.appendChild(del);
+    box.appendChild(item);
+  }
+}
+
+function rerender(){
+  saveState();
+  renderStats();
+  renderCats();
+  renderEntries();
+}
+
+/** ===== Actions ===== */
+function addCategory(){
+  const emoji = $("catEmoji").value.trim() || "🔷";
+  const name = $("catName").value.trim();
+
+  if(!name){
+    alert("Напиши название категории (например: Работа).");
+    return;
+  }
+
+  state.categories.unshift({ id: uid(), emoji, name });
+  $("catEmoji").value = "";
+  $("catName").value = "";
+  rerender();
+}
+
+function deleteCategory(catId){
+  const cat = state.categories.find(c=>c.id===catId);
+  if(!cat) return;
+  const ok = confirm(`Удалить категорию "${cat.name}"?\n(Записи за прошлые дни останутся, но будут без категории.)`);
+  if(!ok) return;
+
+  // remove category
+  state.categories = state.categories.filter(c=>c.id!==catId);
+
+  // keep entries but they will show as "Категория"
+  rerender();
+}
+
+function addMinutesFlow(catId){
+  const cat = state.categories.find(c=>c.id===catId);
+  const label = cat ? `${cat.emoji} ${cat.name}` : "Категория";
+  const raw = prompt(`Сколько минут потратил на: ${label}?`, "30");
+  if(raw === null) return;
+
+  const minutes = clampInt(raw);
+  if(minutes <= 0){
+    alert("Нужно число минут больше 0.");
+    return;
+  }
+
+  ensureToday();
+  state.days[today].entries.push({ id: uid(), catId, minutes, ts: nowTs() });
+  rerender();
+}
+
+function deleteEntry(entryId){
+  ensureToday();
+  const ok = confirm("Удалить эту запись?");
+  if(!ok) return;
+  state.days[today].entries = state.days[today].entries.filter(e=>e.id!==entryId);
+  rerender();
+}
+
+function newDay(){
+  const ok = confirm("Начать новый день и очистить записи за сегодня?");
+  if(!ok) return;
+  ensureToday();
+  state.days[today].entries = [];
+  rerender();
+}
+
+/** ===== Weekly chart ===== */
+function last7DaysKeys(){
+  const res = [];
+  const d = new Date();
+  for(let i=6;i>=0;i--){
+    const x = new Date(d);
+    x.setDate(d.getDate()-i);
+    res.push(dayKey(x));
+  }
+  return res;
+}
+
+function dayTotal(key){
+  const day = state.days[key];
+  if(!day || !day.entries) return 0;
+  return day.entries.reduce((a,e)=>a+e.minutes,0);
+}
+
+function topCats7Days(){
+  const keys = last7DaysKeys();
+  const map = new Map(); // catId -> minutes
+  for(const k of keys){
+    const day = state.days[k];
+    if(!day) continue;
+    for(const e of day.entries){
+      map.set(e.catId, (map.get(e.catId)||0) + e.minutes);
     }
+  }
+  const arr = Array.from(map.entries()).map(([catId, minutes])=>{
+    const c = state.categories.find(x=>x.id===catId);
+    return { catId, minutes, label: c ? `${c.emoji} ${c.name}` : "Категория" };
+  });
+  arr.sort((a,b)=>b.minutes-a.minutes);
+  return arr.slice(0,8);
+}
 
-    const row = document.createElement("div");
-    row.className = "row small";
-    row.innerHTML = `<span>${escapeHtml(activity)}</span><span>${minutes} мин</span>`;
-    list.appendChild(row);
+function drawWeekChart(){
+  const canvas = $("weekCanvas");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
 
-    activityInput.value = "";
-    minutesInput.value = "";
+  // clear
+  ctx.clearRect(0,0,W,H);
+
+  const keys = last7DaysKeys();
+  const totals = keys.map(dayTotal);
+  const max = Math.max(60, ...totals); // avoid 0 max
+  const padL = 60, padR = 20, padT = 20, padB = 60;
+  const innerW = W - padL - padR;
+  const innerH = H - padT - padB;
+
+  // axes
+  ctx.globalAlpha = 1;
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(255,255,255,0.12)";
+  ctx.beginPath();
+  ctx.moveTo(padL, padT);
+  ctx.lineTo(padL, padT + innerH);
+  ctx.lineTo(padL + innerW, padT + innerH);
+  ctx.stroke();
+
+  // grid + labels (Y)
+  ctx.fillStyle = "rgba(232,238,252,0.85)";
+  ctx.font = "14px system-ui";
+  const ticks = 4;
+  for(let i=0;i<=ticks;i++){
+    const v = Math.round((max * (ticks-i))/ticks);
+    const y = padT + (innerH * i)/ticks;
+
+    ctx.strokeStyle = "rgba(255,255,255,0.06)";
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(padL + innerW, y);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(159,176,208,0.9)";
+    ctx.fillText(String(v), 12, y+5);
   }
 
-  function escapeHtml(text) {
-    return text.replace(/[&<>"']/g, function (c) {
-      return {
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      }[c];
-    });
+  // bars
+  const gap = 12;
+  const barW = (innerW - gap*(keys.length-1)) / keys.length;
+
+  for(let i=0;i<keys.length;i++){
+    const val = totals[i];
+    const h = (val / max) * innerH;
+    const x = padL + i*(barW+gap);
+    const y = padT + innerH - h;
+
+    // bar
+    ctx.fillStyle = "rgba(77,163,255,0.85)";
+    ctx.fillRect(x, y, barW, h);
+
+    // day label
+    ctx.fillStyle = "rgba(159,176,208,0.95)";
+    ctx.font = "13px system-ui";
+    const label = fmtDateRu(keys[i]); // "пн, 11.01" style
+    // rotate a bit for readability
+    ctx.save();
+    ctx.translate(x + barW/2, padT + innerH + 38);
+    ctx.rotate(-0.35);
+    ctx.textAlign = "center";
+    ctx.fillText(label, 0, 0);
+    ctx.restore();
+
+    // value label on top (minutes)
+    ctx.fillStyle = "rgba(232,238,252,0.9)";
+    ctx.font = "13px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(String(val), x + barW/2, y - 6);
   }
+
+  // title
+  ctx.fillStyle = "rgba(232,238,252,0.95)";
+  ctx.font = "16px system-ui";
+  ctx.textAlign = "left";
+  ctx.fillText("Минуты по дням (7 дней)", padL, 18);
+
+  // reset align
+  ctx.textAlign = "left";
+}
+
+function openWeek(){
+  drawWeekChart();
+
+  const top = topCats7Days();
+  const box = $("topCats");
+  box.innerHTML = "";
+  if(top.length === 0){
+    const d = document.createElement("div");
+    d.className = "hint";
+    d.textContent = "Пока нет данных за неделю.";
+    box.appendChild(d);
+  } else {
+    for(const t of top){
+      const pill = document.createElement("div");
+      pill.className = "pill";
+      pill.innerHTML = `<span>${t.label}</span><span class="m">${t.minutes} мин</span>`;
+      box.appendChild(pill);
+    }
+  }
+
+  $("weekDialog").showModal();
+}
+
+/** ===== Init ===== */
+$("addCatBtn").addEventListener("click", addCategory);
+$("newDayBtn").addEventListener("click", newDay);
+$("weekBtn").addEventListener("click", openWeek);
+$("closeWeek").addEventListener("click", () => $("weekDialog").close());
+
+renderHeader();
+ensureToday();
+rerender();
 </script>
 </body>
 </html>
