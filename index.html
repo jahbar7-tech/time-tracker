@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Трекер времени</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b1220">
+
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: #0b1220;
+      color: #ffffff;
+    }
+    .container {
+      max-width: 640px;
+      margin: auto;
+      padding: 16px;
+    }
+    h1 {
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+    .card {
+      background: #111a2e;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: #0b1220;
+      color: #fff;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #1f6feb;
+      border-color: #1f6feb;
+      cursor: pointer;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      gap: 10px;
+    }
+    .small {
+      font-size: 14px;
+      opacity: 0.85;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Трекер дня (24 часа)</h1>
+
+    <div class="card">
+      <input id="activity" placeholder="Занятие (сон, работа, зал)">
+      <input id="minutes" type="number" placeholder="Минуты (например 90)">
+      <button onclick="add()">Добавить</button>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span>Потрачено</span>
+        <strong id="spent">0 мин</strong>
+      </div>
+      <div class="row">
+        <span>Осталось</span>
+        <strong id="left">1440 мин</strong>
+      </div>
+    </div>
+
+    <div class="card" id="list">
+      <div class="small">Пока записей нет</div>
+    </div>
+  </div>
+
+<script>
+  // регистрация Service Worker
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+
+  let total = 0;
+
+  function add() {
+    const activityInput = document.getElementById("activity");
+    const minutesInput = document.getElementById("minutes");
+    const list = document.getElementById("list");
+
+    const activity = activityInput.value.trim();
+    const minutes = Number(minutesInput.value);
+
+    if (!activity || !Number.isFinite(minutes) || minutes <= 0) return;
+
+    total += minutes;
+
+    document.getElementById("spent").innerText = total + " мин";
+    document.getElementById("left").innerText = (1440 - total) + " мин";
+
+    if (list.querySelector(".small")) {
+      list.innerHTML = "";
+    }
+
+    const row = document.createElement("div");
+    row.className = "row small";
+    row.innerHTML = `<span>${escapeHtml(activity)}</span><span>${minutes} мин</span>`;
+    list.appendChild(row);
+
+    activityInput.value = "";
+    minutesInput.value = "";
+  }
+
+  function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, function (c) {
+      return {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[c];
+    });
+  }
+</script>
+</body>
+</html>
